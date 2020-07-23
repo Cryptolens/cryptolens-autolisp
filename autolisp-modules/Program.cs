@@ -1,19 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
-using Autodesk.AutoCAD.Windows;
-using Autodesk.Private.InfoCenterLib;
-using Autodesk.Windows;
-
 using SKM.V3;
 using SKM.V3.Methods;
-using SKM.V3.Models;
+
 
 [assembly: CommandClass(typeof(autolisp_modules.MyCommands))]
 namespace autolisp_modules
@@ -40,6 +31,16 @@ namespace autolisp_modules
             string pathToFile = (string)((TypedValue)argsArray.GetValue(1)).Value;
 
             var license = new LicenseKey().LoadFromFile(pathToFile).HasValidSignature(rsaPublicKey);
+
+            if (license != null && license.MaxNoOfMachines > 0)
+            {
+                // check the machine code too only if node-locking is enabled.
+                if (!Helpers.IsOnRightMachinePI(license, false, false))
+                {
+                    return new ResultBuffer(new TypedValue(Convert.ToInt32(LispDataType.Int32), -1));
+                }
+            }
+
             var result = license.IsValid() ? 1 : -1;
 
             return new ResultBuffer(new TypedValue(Convert.ToInt32(LispDataType.Int32), result));
@@ -66,9 +67,27 @@ namespace autolisp_modules
 
             var license = new LicenseKey().LoadFromFile(pathToFile).HasValidSignature(rsaPublicKey);
 
+            if(license != null && license.MaxNoOfMachines > 0)
+            {
+                // check the machine code too only if node-locking is enabled.
+                if (!Helpers.IsOnRightMachinePI(license, false, false))
+                {
+                    return new ResultBuffer(new TypedValue(Convert.ToInt32(LispDataType.Int32), -1));
+                }
+            }
+
             if(!license.IsValid())
             {
                 return new ResultBuffer(new TypedValue(Convert.ToInt32(LispDataType.Int32), -1));
+            }
+
+            if (license != null && license.MaxNoOfMachines > 0)
+            {
+                // check the machine code too only if node-locking is enabled.
+                if (!Helpers.IsOnRightMachinePI(license, false, false))
+                {
+                    return new ResultBuffer(new TypedValue(Convert.ToInt32(LispDataType.Int32), -1));
+                }
             }
 
             return new ResultBuffer(new TypedValue(Convert.ToInt32(LispDataType.Int32), 
